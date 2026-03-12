@@ -13,6 +13,7 @@ from gui.settings_window import SettingsWindow
 from utils.timer import PomodoroTimer, TimerState
 from utils.audio import AudioPlayer
 from utils.config import ConfigManager
+from utils.stats import StatsManager
 
 
 class PomodoroWindow(tk.Toplevel):
@@ -300,6 +301,12 @@ class PomodoroWindow(tk.Toplevel):
         """计时完成事件"""
         self.audio_player.play_notification()
         messagebox.showinfo("完成", "专注时间结束！")
+
+        # 记录专注时间
+        stats_manager = StatsManager()
+        config = self.config_manager.get_all()
+        stats_manager.add_focus_time(stats_manager.get_today_str(), config["focus_time"])
+
         self._reset_timer()
 
     def _on_random_alert(self):

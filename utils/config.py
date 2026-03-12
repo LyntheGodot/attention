@@ -16,7 +16,8 @@ DEFAULT_CONFIG = {
     "min_interval": 5, # 最小间隔（分钟）
     "max_interval": 40, # 最大间隔（分钟）
     "micro_break": 60,  # 微休息时间（秒）
-    "break_countdown": True  # 是否显示休息倒计时
+    "break_countdown": True,  # 是否显示休息倒计时
+    "alert_count": 1  # 提示音次数
 }
 
 

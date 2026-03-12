@@ -7,6 +7,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from gui.pomodoro_window import PomodoroWindow
+from gui.stats_window import StatsWindow
 
 
 class MainWindow(tk.Tk):
@@ -53,6 +54,23 @@ class MainWindow(tk.Tk):
         pomodoro_btn.bind("<Enter>", lambda e: pomodoro_btn.configure(bg="#2980b9"))
         pomodoro_btn.bind("<Leave>", lambda e: pomodoro_btn.configure(bg="#3498db"))
 
+        # 统计按钮
+        stats_btn = tk.Button(
+            button_frame,
+            text="统计",
+            command=self._show_stats,
+            font=("Microsoft YaHei UI", 16),
+            bg="#27ae60",
+            fg="white",
+            relief="flat",
+            padx=40,
+            pady=20,
+            width=20
+        )
+        stats_btn.pack(pady=(0, 20))
+        stats_btn.bind("<Enter>", lambda e: stats_btn.configure(bg="#219a52"))
+        stats_btn.bind("<Leave>", lambda e: stats_btn.configure(bg="#27ae60"))
+
         # 说明按钮
         info_btn = tk.Button(
             button_frame,
@@ -93,6 +111,22 @@ class MainWindow(tk.Tk):
 
     def _on_pomodoro_close(self, window):
         """番茄钟窗口关闭事件"""
+        window.destroy()
+        self.deiconify()
+
+    def _show_stats(self):
+        """显示统计页面"""
+        self.withdraw()
+        try:
+            stats_window = StatsWindow(self)
+            stats_window.protocol("WM_DELETE_WINDOW", lambda: self._on_stats_close(stats_window))
+            stats_window.mainloop()
+        except Exception as e:
+            messagebox.showerror("错误", f"打开统计页面失败: {e}")
+            self.deiconify()
+
+    def _on_stats_close(self, window):
+        """统计页面关闭事件"""
         window.destroy()
         self.deiconify()
 

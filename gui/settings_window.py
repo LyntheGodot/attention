@@ -16,7 +16,7 @@ class SettingsWindow(tk.Toplevel):
         super().__init__(parent)
         self.parent = parent
         self.title("计时选项")
-        self.geometry("500x600")
+        self.geometry("500x650")
         self.configure(bg="#ffffff")
         self.resizable(False, False)
 
@@ -179,6 +179,34 @@ class SettingsWindow(tk.Toplevel):
             fg="#34495e"
         ).pack(side="left")
 
+        # 提示音次数
+        alert_count_frame = tk.Frame(content_frame, bg="#ffffff")
+        alert_count_frame.pack(fill="x", pady=(0, 15))
+        tk.Label(
+            alert_count_frame,
+            text="提示音次数:",
+            font=("Microsoft YaHei UI", 14),
+            bg="#ffffff",
+            fg="#34495e"
+        ).pack(side="left")
+        self.alert_count_entry = tk.Entry(
+            alert_count_frame,
+            font=("Microsoft YaHei UI", 14),
+            width=10,
+            justify="center",
+            validate="key",
+            validatecommand=vcmd
+        )
+        self.alert_count_entry.insert(0, str(self.config.get("alert_count", 1)))
+        self.alert_count_entry.pack(side="left", padx=(20, 5))
+        tk.Label(
+            alert_count_frame,
+            text="次",
+            font=("Microsoft YaHei UI", 14),
+            bg="#ffffff",
+            fg="#34495e"
+        ).pack(side="left")
+
         # 分隔线
         ttk.Separator(content_frame, orient="horizontal").pack(fill="x", pady=20)
 
@@ -274,6 +302,7 @@ class SettingsWindow(tk.Toplevel):
             max_interval = int(self.max_interval_entry.get() or "0")
             micro_break = int(self.micro_break_entry.get() or "0")
             break_countdown = self.break_countdown_var.get()
+            alert_count = int(self.alert_count_entry.get() or "1")
 
             # 验证输入
             if focus_time <= 0 or break_time <= 0:
@@ -286,6 +315,8 @@ class SettingsWindow(tk.Toplevel):
                 raise ValueError(f"最大间隔不能超过专注时间 ({focus_time} 分钟)")
             if micro_break < 10:
                 raise ValueError("微休息时间至少为10秒")
+            if alert_count < 1 or alert_count > 5:
+                raise ValueError("提示音次数必须在1-5次之间")
 
             self.config["focus_time"] = focus_time
             self.config["break_time"] = break_time
@@ -293,6 +324,7 @@ class SettingsWindow(tk.Toplevel):
             self.config["max_interval"] = max_interval
             self.config["micro_break"] = micro_break
             self.config["break_countdown"] = break_countdown
+            self.config["alert_count"] = alert_count
 
             if self.on_save:
                 self.on_save(self.config)
@@ -319,3 +351,5 @@ class SettingsWindow(tk.Toplevel):
             self.micro_break_entry.delete(0, tk.END)
             self.micro_break_entry.insert(0, "60")
             self.break_countdown_var.set(True)
+            self.alert_count_entry.delete(0, tk.END)
+            self.alert_count_entry.insert(0, "1")

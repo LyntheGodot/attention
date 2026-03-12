@@ -50,15 +50,16 @@ class AudioPlayer:
         except Exception as e:
             print(f"pygame 音频初始化失败: {e}")
 
-    def play_sound(self, sound_file=None):
+    def play_sound(self, sound_file=None, volume=0.3):
         """播放音效（简化版）"""
         if self.mixer_initialized:
             try:
                 if sound_file and os.path.exists(sound_file):
                     print(f"正在加载音效: {sound_file}")
                     sound = pygame.mixer.Sound(sound_file)
+                    sound.set_volume(volume)
                     sound.play()
-                    print("音效播放已触发")
+                    print("音效播放已触发器")
                 else:
                     print(f"音效文件不存在: {sound_file}")
                     self._play_system_sound()
@@ -84,7 +85,7 @@ class AudioPlayer:
             except:
                 pass
 
-    def play_notification(self):
+    def play_notification(self, count=1):
         """播放通知提示音（使用 sound1.wav）"""
         # 获取项目根目录
         sound_file = self._get_sound_file_path()
@@ -93,8 +94,14 @@ class AudioPlayer:
         print(f"尝试播放提示音: {sound_file}")
         print(f"文件是否存在: {os.path.exists(sound_file)}")
 
-        thread = threading.Thread(target=self.play_sound, args=(sound_file,), daemon=True)
-        thread.start()
+        # 根据count循环播放
+        for i in range(count):
+            thread = threading.Thread(target=self.play_sound, args=(sound_file, 0.3), daemon=True)
+            thread.start()
+            # 如果有多次播放，间隔0.5秒
+            if i < count - 1:
+                import time
+                time.sleep(0.5)
 
     def _get_sound_file_path(self):
         """获取 sound1.wav 的绝对路径"""
