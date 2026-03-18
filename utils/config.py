@@ -7,8 +7,27 @@
 
 import json
 import os
+import sys
 
 CONFIG_FILE = "config.json"
+
+
+def _get_user_data_path():
+    """获取用户数据路径（配置和统计文件保存位置）"""
+    # 如果是打包的 exe，保存在 exe 同级目录下
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        exe_path = os.path.dirname(sys.executable)
+        return exe_path
+    # 开发环境：项目根目录
+    utils_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(utils_dir)
+
+
+def _get_config_path():
+    """获取配置文件路径"""
+    base_path = _get_user_data_path()
+    return os.path.join(base_path, CONFIG_FILE)
+
 
 DEFAULT_CONFIG = {
     "focus_time": 40,  # 专注时间（分钟）
@@ -32,9 +51,10 @@ class ConfigManager:
 
     def load_config(self):
         """加载配置文件"""
+        config_path = _get_config_path()
         try:
-            if os.path.exists(CONFIG_FILE):
-                with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            if os.path.exists(config_path):
+                with open(config_path, "r", encoding="utf-8") as f:
                     config = json.load(f)
                 # 合并默认配置（处理新增配置项）
                 merged_config = DEFAULT_CONFIG.copy()
@@ -48,8 +68,9 @@ class ConfigManager:
 
     def save_config(self):
         """保存配置到文件"""
+        config_path = _get_config_path()
         try:
-            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            with open(config_path, "w", encoding="utf-8") as f:
                 json.dump(self.config, f, indent=4, ensure_ascii=False)
             return True
         except Exception as e:

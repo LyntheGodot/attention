@@ -7,10 +7,28 @@
 
 import json
 import os
+import sys
 from datetime import datetime, timedelta
 
 
 STATS_FILE = "stats.json"
+
+
+def _get_user_data_path():
+    """获取用户数据路径（配置和统计文件保存位置）"""
+    # 如果是打包的 exe，保存在 exe 同级目录下
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        exe_path = os.path.dirname(sys.executable)
+        return exe_path
+    # 开发环境：项目根目录
+    utils_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.dirname(utils_dir)
+
+
+def _get_stats_path():
+    """获取统计文件路径"""
+    base_path = _get_user_data_path()
+    return os.path.join(base_path, STATS_FILE)
 
 
 class StatsManager:
@@ -21,9 +39,10 @@ class StatsManager:
 
     def load_stats(self):
         """加载统计数据"""
+        stats_path = _get_stats_path()
         try:
-            if os.path.exists(STATS_FILE):
-                with open(STATS_FILE, "r", encoding="utf-8") as f:
+            if os.path.exists(stats_path):
+                with open(stats_path, "r", encoding="utf-8") as f:
                     return json.load(f)
             else:
                 return {}
@@ -33,8 +52,9 @@ class StatsManager:
 
     def save_stats(self):
         """保存统计数据到文件"""
+        stats_path = _get_stats_path()
         try:
-            with open(STATS_FILE, "w", encoding="utf-8") as f:
+            with open(stats_path, "w", encoding="utf-8") as f:
                 json.dump(self.stats, f, indent=4, ensure_ascii=False)
             return True
         except Exception as e:

@@ -7,6 +7,7 @@
 
 import os
 import threading
+import sys
 
 # 尝试导入 pygame，不可用时使用系统蜂鸣声
 try:
@@ -14,6 +15,17 @@ try:
     PYGAME_AVAILABLE = True
 except ImportError:
     PYGAME_AVAILABLE = False
+
+
+def _get_base_path():
+    """获取基础路径（支持 PyInstaller 打包）"""
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # PyInstaller 打包后的临时目录
+        return sys._MEIPASS
+    else:
+        # 开发环境：项目根目录
+        utils_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.dirname(utils_dir)
 
 
 class AudioPlayer:
@@ -107,16 +119,14 @@ class AudioPlayer:
 
     def _get_sound_file_path(self):
         """获取 sound1.wav 的绝对路径"""
-        # 方法1: 从当前文件位置向上查找
-        utils_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(utils_dir)
-        sound_file = os.path.join(project_root, "lingsheng", "sound1.wav")
+        base_path = _get_base_path()
+        sound_file = os.path.join(base_path, "lingsheng", "sound1.wav")
         sound_file = os.path.normpath(sound_file)
 
         if os.path.exists(sound_file):
             return sound_file
 
-        # 方法2: 尝试从当前工作目录查找
+        # 备用方法：尝试从当前工作目录查找
         cwd = os.getcwd()
         sound_file_cwd = os.path.join(cwd, "lingsheng", "sound1.wav")
         if os.path.exists(sound_file_cwd):
@@ -135,16 +145,14 @@ class AudioPlayer:
         }
         file_name = file_names.get(noise_type, "Forest white noise.mp3")
 
-        # 方法1: 从当前文件位置向上查找
-        utils_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(utils_dir)
-        sound_file = os.path.join(project_root, "lingsheng", file_name)
+        base_path = _get_base_path()
+        sound_file = os.path.join(base_path, "lingsheng", file_name)
         sound_file = os.path.normpath(sound_file)
 
         if os.path.exists(sound_file):
             return sound_file
 
-        # 方法2: 尝试从当前工作目录查找
+        # 备用方法：尝试从当前工作目录查找
         cwd = os.getcwd()
         sound_file_cwd = os.path.join(cwd, "lingsheng", file_name)
         if os.path.exists(sound_file_cwd):
