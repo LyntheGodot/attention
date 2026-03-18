@@ -47,6 +47,8 @@ class PomodoroWindow(tk.Toplevel):
         self.timer.on_micro_break_end = self._on_micro_break_end
 
         self.is_micro_break = False
+        self.white_noise_playing = False
+        self.white_noise_paused = False
 
         # 创建界面
         self._create_widgets()
@@ -153,6 +155,23 @@ class PomodoroWindow(tk.Toplevel):
         )
         self.reset_btn.pack()
 
+        # 白噪音按钮
+        self.white_noise_btn = tk.Button(
+            control_frame,
+            text="🌲 播放白噪音",
+            command=self._toggle_white_noise,
+            font=("Microsoft YaHei UI", 12),
+            bg="#27ae60",
+            fg="white",
+            relief="flat",
+            padx=30,
+            pady=10,
+            state="disabled"
+        )
+        self.white_noise_btn.pack(pady=(15, 0))
+        self.white_noise_btn.bind("<Enter>", lambda e: self.white_noise_btn.configure(bg="#219a52"))
+        self.white_noise_btn.bind("<Leave>", lambda e: self.white_noise_btn.configure(bg="#27ae60"))
+
         # 绑定按钮悬停效果
         self.start_btn.bind("<Enter>", lambda e: self.start_btn.configure(bg="#2980b9"))
         self.start_btn.bind("<Leave>", lambda e: self.start_btn.configure(bg="#3498db"))
@@ -225,6 +244,8 @@ class PomodoroWindow(tk.Toplevel):
             self.start_btn.config(fg="#e74c3c")
             self.start_btn.config(highlightbackground="#e74c3c")
             self.status_label.config(text="专注进行中")
+            # 启用白噪音按钮
+            self.white_noise_btn.config(state="normal")
         elif self.timer.state == TimerState.RUNNING:
             self.timer.pause()
             self.start_btn.config(text="继续")
@@ -238,6 +259,30 @@ class PomodoroWindow(tk.Toplevel):
             self.start_btn.config(highlightbackground="#e74c3c")
             self.status_label.config(text="专注进行中")
 
+    def _toggle_white_noise(self):
+        """切换白噪音播放状态"""
+        config = self.config_manager.get_all()
+        volume = config.get("white_noise_volume", 0.5)
+        noise_type = config.get("white_noise_type", "forest")
+
+        if not self.white_noise_playing:
+            # 开始播放
+            if self.audio_player.play_white_noise(volume=volume, noise_type=noise_type):
+                self.white_noise_playing = True
+                self.white_noise_paused = False
+                self.white_noise_btn.config(text="🌲 暂停白噪音")
+        else:
+            if self.white_noise_paused:
+                # 继续播放
+                self.audio_player.unpause_white_noise()
+                self.white_noise_paused = False
+                self.white_noise_btn.config(text="🌲 暂停白噪音")
+            else:
+                # 暂停播放
+                self.audio_player.pause_white_noise()
+                self.white_noise_paused = True
+                self.white_noise_btn.config(text="🌲 继续白噪音")
+
     def _reset_timer(self):
         """重置计时器"""
         self.timer.reset()
@@ -246,11 +291,23 @@ class PomodoroWindow(tk.Toplevel):
         self.start_btn.config(highlightbackground="#3498db")
         self.status_label.config(text="准备开始")
         self.is_micro_break = False
+        # 停止白噪音并禁用按钮
+        self._stop_white_noise()
+        self.white_noise_btn.config(state="disabled")
         self.update_time_label()
+
+    def _stop_white_noise(self):
+        """停止白噪音并重置状态"""
+        if self.white_noise_playing:
+            self.audio_player.stop_white_noise()
+            self.white_noise_playing = False
+            self.white_noise_paused = False
+            self.white_noise_btn.config(text="🌲 播放白噪音")
 
     def _go_back(self):
         """返回主菜单"""
         self.timer.reset()
+        self._stop_white_noise()
         self._cleanup()
         if hasattr(self, 'parent'):
             self.parent.deiconify()
@@ -299,19 +356,22 @@ class PomodoroWindow(tk.Toplevel):
 
     def _on_timer_complete(self):
         """计时完成事件"""
-        self.audio_player.play_notification()
+        config = self.config_manager.get_all()
+        volume = config.get("volume", 0.5)
+        self.audio_player.play_notification(count=config.get("alert_count", 1), volume=volume)
         messagebox.showinfo("完成", "专注时间结束！")
 
         # 记录专注时间
         stats_manager = StatsManager()
-        config = self.config_manager.get_all()
         stats_manager.add_focus_time(stats_manager.get_today_str(), config["focus_time"])
 
         self._reset_timer()
 
     def _on_random_alert(self):
         """随机提示事件"""
-        self.audio_player.play_notification()
+        config = self.config_manager.get_all()
+        volume = config.get("volume", 0.5)
+        self.audio_player.play_notification(count=config.get("alert_count", 1), volume=volume)
 
     def _on_micro_break_start(self):
         """微休息开始事件"""
@@ -337,7 +397,9 @@ class PomodoroWindow(tk.Toplevel):
         self.configure(bg="#ffffff")
         self._update_all_widgets_bg("#ffffff")
 
-        self.audio_player.play_notification()
+        config = self.config_manager.get_all()
+        volume = config.get("volume", 0.5)
+        self.audio_player.play_notification(count=config.get("alert_count", 1), volume=volume)
         self.update_time_label()
         self.status_label.config(text="专注进行中")
 

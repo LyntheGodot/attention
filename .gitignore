@@ -33,11 +33,19 @@ wheels/
 
 # Config
 config.json
+stats.json
+
+# Audio files (optional, can commit if needed)
+# lingsheng/
 
 # Tests
 test_sound.py
 test_main_audio.py
 diagnose_sound.py
+
+# Latex
+periodic_signal_analysis.*
+upload_sound.py
 
 # Build
 build/

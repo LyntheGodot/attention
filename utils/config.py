@@ -17,7 +17,10 @@ DEFAULT_CONFIG = {
     "max_interval": 40, # 最大间隔（分钟）
     "micro_break": 60,  # 微休息时间（秒）
     "break_countdown": True,  # 是否显示休息倒计时
-    "alert_count": 1  # 提示音次数
+    "alert_count": 1,  # 提示音次数
+    "volume": 0.5,  # 提示音音量 (0.0 - 1.0)
+    "white_noise_volume": 0.5,  # 白噪音音量 (0.0 - 1.0)
+    "white_noise_type": "forest"  # 白噪音类型: "forest" 或 "thunderstorm"
 }
 
 
