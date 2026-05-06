@@ -14,6 +14,10 @@ from utils.timer import PomodoroTimer, TimerState
 from utils.audio import AudioPlayer
 from utils.config import ConfigManager
 from utils.stats import StatsManager
+from utils.window_monitor import WindowMonitor
+from utils.activity_storage import ActivityStorageManager
+from utils.distraction_blacklist import DistractionBlacklist
+from gui.toast import Toast
 
 
 class PomodoroWindow(tk.Toplevel):
@@ -49,6 +53,15 @@ class PomodoroWindow(tk.Toplevel):
         self.is_micro_break = False
         self.white_noise_playing = False
         self.white_noise_paused = False
+
+        # 窗口监测和活动存储
+        self.window_monitor = WindowMonitor()
+        self.activity_storage = ActivityStorageManager()
+        self.distraction_blacklist = DistractionBlacklist()
+
+        # 设置分心检测回调
+        self.window_monitor.distraction_checker = self.distraction_blacklist.matches
+        self.window_monitor.on_distraction = self._on_distraction_detected
 
         # 创建界面
         self._create_widgets()
@@ -246,18 +259,25 @@ class PomodoroWindow(tk.Toplevel):
             self.status_label.config(text="专注进行中")
             # 启用白噪音按钮
             self.white_noise_btn.config(state="normal")
+            # 启动窗口监测
+            self.window_monitor._distraction_cooldown.clear()
+            self.window_monitor.start()
         elif self.timer.state == TimerState.RUNNING:
             self.timer.pause()
             self.start_btn.config(text="继续")
             self.start_btn.config(fg="#27ae60")
             self.start_btn.config(highlightbackground="#27ae60")
             self.status_label.config(text="已暂停")
+            # 暂停窗口监测
+            self.window_monitor.pause()
         elif self.timer.state == TimerState.PAUSED:
             self.timer.start()
             self.start_btn.config(text="暂停")
             self.start_btn.config(fg="#e74c3c")
             self.start_btn.config(highlightbackground="#e74c3c")
             self.status_label.config(text="专注进行中")
+            # 恢复窗口监测
+            self.window_monitor.resume()
 
     def _toggle_white_noise(self):
         """切换白噪音播放状态"""
@@ -285,6 +305,10 @@ class PomodoroWindow(tk.Toplevel):
 
     def _reset_timer(self):
         """重置计时器"""
+        # 停止窗口监测
+        if self.window_monitor.is_running():
+            self.window_monitor.stop()
+
         self.timer.reset()
         self.start_btn.config(text="开始")
         self.start_btn.config(fg="#3498db")
@@ -306,6 +330,10 @@ class PomodoroWindow(tk.Toplevel):
 
     def _go_back(self):
         """返回主菜单"""
+        # 停止窗口监测
+        if self.window_monitor.is_running():
+            self.window_monitor.stop()
+
         self.timer.reset()
         self._stop_white_noise()
         self._cleanup()
@@ -365,7 +393,48 @@ class PomodoroWindow(tk.Toplevel):
         stats_manager = StatsManager()
         stats_manager.add_focus_time(stats_manager.get_today_str(), config["focus_time"])
 
+        # 停止窗口监测并获取活动记录
+        activities = self.window_monitor.stop() if self.window_monitor.is_running() else []
+
+        # 重置计时器
         self._reset_timer()
+
+        # 如果有活动记录，弹出评估窗口
+        if activities:
+            try:
+                from gui.self_assessment_window import SelfAssessmentWindow
+                assessment_window = SelfAssessmentWindow(self, activities, config["focus_time"])
+                assessment_window.on_save = self._on_assessment_save
+                assessment_window.mainloop()
+            except Exception as e:
+                print(f"打开评估窗口失败: {e}")
+                import traceback
+                traceback.print_exc()
+
+    def _on_assessment_save(self, activities):
+        """保存评估结果"""
+        try:
+            config = self.config_manager.get_all()
+            self.activity_storage.add_session_record(activities, config["focus_time"])
+            # 重新加载黑名单（用户刚才标注了新的分心行为）
+            self.distraction_blacklist.reload()
+        except Exception as e:
+            print(f"保存活动记录失败: {e}")
+            import traceback
+            traceback.print_exc()
+
+    def _on_distraction_detected(self, app_name: str, domain: str, window_title: str):
+        """分心窗口检测回调（来自 WindowMonitor 的后台线程）"""
+        if domain:
+            msg = f"⚠ 你曾标记过 '{domain}' 是分心来源\n注意收回你的注意力哦 ~"
+        else:
+            msg = f"⚠ 你曾标记过 '{app_name}' 是分心来源\n注意收回你的注意力哦 ~"
+
+        # 在 tkinter 主线程中创建 Toast
+        try:
+            self.after(0, lambda: Toast.show(self, msg, is_warning=True))
+        except tk.TclError:
+            pass
 
     def _on_random_alert(self):
         """随机提示事件"""
@@ -378,6 +447,8 @@ class PomodoroWindow(tk.Toplevel):
         self.is_micro_break = True
         self.configure(bg="#e8f5e9")
         self._update_all_widgets_bg("#e8f5e9")
+        # 暂停窗口监测，微休息时间不记录
+        self.window_monitor.pause()
 
         # 更新圆环内的时间显示
         self.canvas.delete("time_text")
@@ -396,6 +467,8 @@ class PomodoroWindow(tk.Toplevel):
         self.is_micro_break = False
         self.configure(bg="#ffffff")
         self._update_all_widgets_bg("#ffffff")
+        # 恢复窗口监测
+        self.window_monitor.resume()
 
         config = self.config_manager.get_all()
         volume = config.get("volume", 0.5)

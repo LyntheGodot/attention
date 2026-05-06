@@ -1,0 +1,20 @@
+{
+  "app_mapping": {
+    "explorer.exe": "📝 工作",
+    "wps.exe": "📝 工作",
+    "msedge.exe": "📝 工作",
+    "python.exe": "📝 工作",
+    "cc-switch.exe": "📚 学习",
+    "code.exe": "📝 工作",
+    "dnplayer.exe": "📝 工作",
+    "maa.exe": "📝 工作"
+  },
+  "categories": [
+    "📝 工作",
+    "📚 学习",
+    "💬 社交",
+    "🎮 娱乐",
+    "🔍 浏览",
+    "✨ 其他"
+  ]
+}
