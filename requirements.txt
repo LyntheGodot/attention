@@ -6,6 +6,13 @@ pillow>=10.0.0
 # 音频播放
 pygame>=2.5.0
 
+# 窗口活动监测（Windows平台）
+pywin32>=306
+psutil>=5.9.0
+
+# 手机配对（QR 码生成）
+qrcode>=7.4.0
+
 # 如果需要更高级的界面库，可以考虑添加：
 # tkcalendar>=1.6.1  # 日历组件
 # ttkwidgets>=0.14.1  # 高级组件
