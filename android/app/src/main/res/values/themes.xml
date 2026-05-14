@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AttentionPomodoro" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">#3498DB</item>
+        <item name="android:statusBarColor">#2980B9</item>
+    </style>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">注意力番茄钟</string>
+    <string name="accessibility_description">监测前台应用切换以记录使用情况</string>
+    <string name="udp_notification_title">注意力番茄钟 - 等待专注会话</string>
+    <string name="udp_notification_text">正在监听电脑端指令...</string>
+    <string name="monitor_notification_title">专注会话进行中</string>
+    <string name="monitor_notification_text">正在记录手机使用情况...</string>
+</resources>
