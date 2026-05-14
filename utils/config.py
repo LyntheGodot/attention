@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 番茄钟应用 - 配置管理模块
-用于管理应用的各种设置参数
 """
 
 import json
@@ -13,96 +12,61 @@ CONFIG_FILE = "config.json"
 
 
 def _get_user_data_path():
-    """获取用户数据路径（配置和统计文件保存位置）"""
-    # 如果是打包的 exe，保存在 exe 同级目录下
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         exe_path = os.path.dirname(sys.executable)
         return exe_path
-    # 开发环境：项目根目录
     utils_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.dirname(utils_dir)
 
 
 def _get_config_path():
-    """获取配置文件路径"""
     base_path = _get_user_data_path()
     return os.path.join(base_path, CONFIG_FILE)
 
 
 DEFAULT_CONFIG = {
-    "focus_time": 40,  # 专注时间（分钟）
-    "break_time": 5,   # 休息时间（分钟）
-    "min_interval": 5, # 最小间隔（分钟）
-    "max_interval": 40, # 最大间隔（分钟）
-    "micro_break": 60,  # 微休息时间（秒）
-    "break_countdown": True,  # 是否显示休息倒计时
-    "alert_count": 1,  # 提示音次数
-    "volume": 0.5,  # 提示音音量 (0.0 - 1.0)
-    "white_noise_volume": 0.5,  # 白噪音音量 (0.0 - 1.0)
-    "white_noise_type": "forest"  # 白噪音类型: "forest" 或 "thunderstorm"
+    "focus_time": 40,
+    "break_time": 5,
+    "min_interval": 5,
+    "max_interval": 40,
+    "micro_break": 60,
+    "break_countdown": True,
+    "alert_count": 1,
+    "volume": 0.5,
+    "white_noise_volume": 0.5,
+    "white_noise_type": "forest",
+    "window_monitoring_enabled": True,
+    "phone_pairing_enabled": False,
+    "phone_udp_port": 56789,
+    "phone_http_port": 56790,
 }
 
 
 class ConfigManager:
-    """配置管理类"""
-
     def __init__(self):
-        self.config = self.load_config()
+        self._config = DEFAULT_CONFIG.copy()
+        self._load()
 
-    def load_config(self):
-        """加载配置文件"""
-        config_path = _get_config_path()
+    def _load(self):
+        path = _get_config_path()
         try:
-            if os.path.exists(config_path):
-                with open(config_path, "r", encoding="utf-8") as f:
-                    config = json.load(f)
-                # 合并默认配置（处理新增配置项）
-                merged_config = DEFAULT_CONFIG.copy()
-                merged_config.update(config)
-                return merged_config
-            else:
-                return DEFAULT_CONFIG.copy()
-        except Exception as e:
-            print(f"加载配置失败: {e}")
-            return DEFAULT_CONFIG.copy()
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    saved = json.load(f)
+                self._config.update(saved)
+        except (json.JSONDecodeError, IOError):
+            pass
 
     def save_config(self):
-        """保存配置到文件"""
-        config_path = _get_config_path()
-        try:
-            with open(config_path, "w", encoding="utf-8") as f:
-                json.dump(self.config, f, indent=4, ensure_ascii=False)
-            return True
-        except Exception as e:
-            print(f"保存配置失败: {e}")
-            return False
+        path = _get_config_path()
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(self._config, f, ensure_ascii=False, indent=4)
 
-    def get(self, key):
-        """获取配置项"""
-        return self.config.get(key, DEFAULT_CONFIG.get(key))
-
-    def set(self, key, value):
-        """设置配置项"""
-        if key in DEFAULT_CONFIG:
-            # 验证数据类型
-            expected_type = type(DEFAULT_CONFIG[key])
-            if isinstance(value, expected_type):
-                # 特殊验证：最大间隔不能超过专注时间
-                if key == "max_interval":
-                    if value > self.config.get("focus_time", 40):
-                        raise ValueError("最大间隔不能超过专注时间")
-                if key == "focus_time":
-                    if self.config.get("max_interval", 40) > value:
-                        self.config["max_interval"] = value
-                self.config[key] = value
-                return True
-        return False
+    def get(self, key, default=None):
+        return self._config.get(key, default)
 
     def get_all(self):
-        """获取所有配置"""
-        return self.config.copy()
+        return self._config.copy()
 
-    def reset_to_default(self):
-        """重置为默认配置"""
-        self.config = DEFAULT_CONFIG.copy()
-        self.save_config()
+    def set(self, key, value):
+        self._config[key] = value
