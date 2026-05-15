@@ -1,6 +1,6 @@
 # 注意力番茄钟 · Attention is all you need!
 
-> 一款随机番茄钟应用。**PC + Android 双端协同**，利用心理学效应让专注变得轻松有趣。
+> 一款专为专注力低下、ADHD人群打造的随机番茄钟应用。**PC + Android 双端协同**，利用心理学效应让专注变得轻松有趣。
 
 ---
 
@@ -8,7 +8,7 @@
 
 | 平台 | 文件 | 说明 |
 |------|------|------|
-| 🖥️ **Windows 电脑** | [注意力番茄钟.exe](https://github.com/LyntheGodot/attention/releases/latest/download/注意力番茄钟.exe) | 绿色免安装，双击运行 |
+| 🖥️ **Windows 电脑** | [attention.exe](https://github.com/LyntheGodot/attention/releases/latest/download/attention.exe) | 绿色免安装，双击运行 |
 | 📱 **Android 手机** | [app-debug.apk](https://github.com/LyntheGodot/attention/releases/latest/download/app-debug.apk) | 传输到手机后点击安装 |
 
 > 💡 **推荐双端搭配使用**：电脑专注 + 手机监测，互相监督效果最佳。
@@ -19,7 +19,7 @@
 
 ### 🖥️ PC 端
 
-1. 下载 `注意力番茄钟.exe`，双击运行
+1. 下载 `attention.exe`，双击运行
 2. 点击「**随机番茄钟**」进入专注界面
 3. 点击右上角 **⚙️** 自定义参数（时长、间隔、提示音等）
 4. 点击「**开始**」进入专注，听到提示音时短暂闭眼收回注意力
@@ -27,7 +27,7 @@
 
 ### 📱 Android 端
 
-1. 下载 APK 安装到手机，打开 App
+1. 下载 `app-debug.apk` 安装到手机，打开 App
 2. 点击「**权限检查与引导**」→ 逐项开启所需权限（使用情况访问、通知等）
 3. 点击「**启动监听**」，手机进入待命状态
 
